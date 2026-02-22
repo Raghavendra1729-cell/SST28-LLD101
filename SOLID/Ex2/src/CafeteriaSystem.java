@@ -4,7 +4,7 @@ public class CafeteriaSystem {
     PersistenceDb db;
     InvoiceService is;
     PrinterService ps;
-    private final FileStore store = new FileStore();
+    private Store store = new FileStore();
 
     public CafeteriaSystem(PersistenceDb db) {
         this.db = db;
@@ -38,17 +38,13 @@ public class CafeteriaSystem {
         double discount = DiscountRules.discountAmount(d, subtotal, lines.size());
         double total = subtotal + tax - discount;
 
-        ps.out.append(String.format("Subtotal: %.2f\n", subtotal));
-        ps.out.append(String.format("Tax(%.0f%%): %.2f\n", taxPct, tax));
-        ps.out.append(String.format("Discount: -%.2f\n", discount));
-        ps.out.append(String.format("TOTAL: %.2f\n", total));
+        ps.appendTotals(subtotal, taxPct, tax, discount, total);
 
-        String printable = InvoiceFormatter.identityFormat(ps.out.toString());
-        System.out.print(printable);
+        String printable = ps.printAndGetReceipt();
 
         store.save(is.invId, printable);
         System.out.println("Saved invoice: " + is.invId + " (lines=" + store.countLines(is.invId) + ")");
-        
-        ps.out = new StringBuilder(); // Reset for next checkout
+
+        ps.reset(); 
     }
 }
