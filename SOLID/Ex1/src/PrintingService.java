@@ -1,4 +1,6 @@
 public class PrintingService{
+    public Object out;
+
     public void print(PersistenceDb db,StudentRecord st){
         System.out.println("OK: created student " + st.id);
         System.out.println("Saved. Total students: " + db.count());
