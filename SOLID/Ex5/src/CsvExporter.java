@@ -1,11 +1,20 @@
 import java.nio.charset.StandardCharsets;
 
 public class CsvExporter extends Exporter {
+
     @Override
-    public ExportResult export(ExportRequest req) {
-        // LSP issue: changes meaning by lossy conversion
-        String body = req.body == null ? "" : req.body.replace("\n", " ").replace(",", " ");
-        String csv = "title,body\n" + req.title + "," + body + "\n";
-        return new ExportResult("text/csv", csv.getBytes(StandardCharsets.UTF_8));
+    public String getFormatName() { return "CSV"; }
+
+    @Override
+    public String getContentType() { return "text/csv"; }
+
+    @Override
+    protected ExportResult generateExport(ExportRequest req) {
+        String title = req.title != null ? req.title : "";
+        
+        String body = req.body != null ? req.body.replace("\n", " ") : ""; 
+        
+        String csv = title + "," + body;
+        return new ExportResult(getContentType(), csv.getBytes(StandardCharsets.UTF_8));
     }
 }
