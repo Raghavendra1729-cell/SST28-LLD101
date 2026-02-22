@@ -79,5 +79,5 @@ StudentRecord{id='SST-2026-0001', name='Riya', email='riya@sst.edu', phone='9876
 - Keep public APIs stable; move details behind small interfaces.
 
 ## 10. Stretch goals
-- Add a second input example that fails validation, without duplicating logic.
+- Add a second input example that fails validation, without duplxicating logic.
 - Make program list configurable without touching onboarding workflow code.
