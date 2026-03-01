@@ -12,7 +12,7 @@ public class ClassroomController {
         ((Brightness)lights).setBrightness(60);
 
         SmartClassroomDevice ac = reg.getFirstOfType("AirConditioner");
-        ((AirConditioner)ac).setTemperatureC(24);
+        ((Temperature)ac).setTemperatureC(24);
 
         SmartClassroomDevice scan = reg.getFirstOfType("AttendanceScanner");
         System.out.println("Attendance scanned: present=" + ((Attendance)scan).scanAttendance());
@@ -20,7 +20,7 @@ public class ClassroomController {
 
     public void endClass() {
         System.out.println("Shutdown sequence:");
-        System.out.println("Shutdown sequence:");
+        // System.out.println("Shutdown sequence:");
         // FIX: Cast these to (Power) so the compiler knows they have a powerOff() method
         ((Power) reg.getFirstOfType("Projector")).powerOff();
         ((Power) reg.getFirstOfType("LightsPanel")).powerOff();
