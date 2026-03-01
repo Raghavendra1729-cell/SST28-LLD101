@@ -1,0 +1,95 @@
+Ex1 — Single Responsibility Principle (SRP): Student Onboarding
+Overview: A system that takes a raw string, parses student details, validates them, creates a student record, saves it to a database, and prints a receipt.
+
+The Problem: The OnboardingService class was a "God Class." It handled parsing, validation, ID generation, database persistence, and console printing all inside one giant registerFromRawInput method.
+
+How You Fixed It: You broke the massive method down by delegating responsibilities to dedicated classes. You created:
+
+InputService to parse the raw string.
+
+ValidationService to check constraints and create the StudentRecord.
+
+PrintingService to handle console output.
+
+You also abstracted the database via a PersistenceDb interface and a HashMapDb class. OnboardingService now acts only as an orchestrator, strictly adhering to SRP.
+
+Ex2 — Single Responsibility Principle (SRP): Cafeteria Billing
+Overview: A checkout system that processes food orders, applies taxes and discounts based on the user type, generates a formatted receipt, and saves it.
+
+The Problem: Similar to Ex1, CafeteriaSystem.checkout() was doing too much. Tax percentages and discount logic were hard-coded inside if/else blocks, mixed entirely with string formatting and file storage.
+
+How You Fixed It: You decoupled the business rules and formatting from the main flow:
+
+You extracted the rules into DiscountRule and taxRules interfaces, creating distinct strategy classes (e.g., StudentDiscountRules, StaffTaxRules).
+
+You moved subtotal calculation and ID generation into an InvoiceService.
+
+You moved all string building and formatting into a PrinterService.
+
+CafeteriaSystem now just glues these modular pieces together.
+
+Ex3 — Open/Closed Principle (OCP): Placement Eligibility
+Overview: A system that checks if a student is eligible for placements based on multiple criteria (CGR, attendance, credits, disciplinary flags).
+
+The Problem: EligibilityEngine.evaluate() contained a massive if/else if chain. If you wanted to add a new rule (like "minimum project score"), you would have to modify this core engine file, violating OCP.
+
+How You Fixed It: You created an EligibilityRule interface with an evaluate() method. You then created separate classes for each rule: AttendanceRule, CgrRule, CreditsRule, and DisciplinaryRule.
+
+The EligibilityEngine now accepts a List<EligibilityRule> in its constructor. It simply loops through the rules. Now, to add a new rule, you just write a new class without ever touching the engine's core logic.
+
+Ex4 — Open/Closed Principle (OCP): Hostel Fee Calculator
+Overview: Calculates the monthly hostel fee based on the room type (Single, Double, etc.) and selected add-ons (Mess, Laundry).
+
+The Problem: The calculator used a giant switch statement to find the base room price and sequential if statements to add the add-on prices. Adding a new room type or service required modifying the core calculator method.
+
+How You Fixed It: You applied polymorphism.
+
+You created a Rooms interface (SingleRoom, DoubleRoom, etc.) and an ExtraPricingForAddons interface (MessAddOn, GymAddOn).
+
+You passed Maps of these interfaces into the HostelFeeCalculator. The calculator now simply looks up the room and loops through the add-ons to get their prices, completely removing the fragile switch cases.
+
+Ex5 — Liskov Substitution Principle (LSP): File Exporters
+Overview: A reporting tool exports data to CSV, PDF, and JSON formats using a base Exporter class.
+
+The Problem: The subclasses violated the base contract. For instance, PdfExporter threw a random runtime exception if the text was too long, and JsonExporter handled null differently. Callers couldn't swap exporters reliably without writing format-specific workarounds.
+
+How You Fixed It: You enforced a strict contract in the base Exporter class using the Template Method pattern.
+
+The base export() method now centrally handles nulls and length validations.
+
+Subclasses only implement a generateExport() method and provide metadata like getMaxContentLength(). Now, all subclasses behave predictably and can seamlessly substitute the base class.
+
+Ex6 — Liskov Substitution Principle (LSP): Notification Senders
+Overview: Sends messages via Email, SMS, or WhatsApp.
+
+The Problem: Subclasses secretly changed the expected behavior. EmailSender silently truncated messages without telling the caller, and WhatsAppSender crashed if the phone number lacked a "+", making the subclasses untrustworthy substitutes for the base NotificationSender.
+
+How You Fixed It: Similar to Ex5, you moved the "pre-condition" checks (like max length and phone number validation) up into the base NotificationSender class. Subclasses now define their specific constraints via methods like getMaxLen() and requiresPlusInPhone(), while implementing the actual sending in doSend().
+
+Ex7 — Interface Segregation Principle (ISP): Smart Classroom
+Overview: A controller that manages smart devices like projectors, ACs, lights, and attendance scanners.
+
+The Problem: There was one massive SmartClassroomDevice interface containing methods like setTemperature(), setBrightness(), and scanAttendance(). As a result, the Projector class was forced to implement setTemperatureC with a dummy body, polluting the code.
+
+How You Fixed It: You broke the fat interface down into role-specific, atomic interfaces: Power, Brightness, Temperature, Attendance, and ConnectInput. Each device now only implements the interfaces it actually supports (e.g., AirConditioner implements Power and Temperature).
+
+Ex8 — Interface Segregation Principle (ISP): Club Admin Tools
+Overview: A tool for club admins (Treasurers, Secretaries, Event Leads) to manage their club.
+
+The Problem: A single ClubAdminTools interface held methods for finance, minutes, and events. The SecretaryTool was forced to implement finance methods (addIncome) and leave them completely blank.
+
+How You Fixed It: You segregated the single interface into three distinct capabilities: FinanceAdmin, EventAdmin, and MinutesAdmin. The TreasurerTool only implements FinanceAdmin, ensuring classes are strictly bound only to the behaviors they actually use.
+
+Ex9 — Dependency Inversion Principle (DIP): Evaluation Pipeline
+Overview: A pipeline that grades coding assignments by running plagiarism checks, generating a score, and writing a report.
+
+The Problem: EvaluationPipeline was tightly coupled to low-level modules. It was using the new keyword to hard-code instances of PlagiarismChecker, CodeGrader, and ReportWriter directly inside its method. You couldn't test it or swap the checker out without editing the pipeline.
+
+How You Fixed It: You created abstractions (interfaces): Checker, Grader, and Writer. You then applied Constructor Injection to pass these dependencies into the EvaluationPipeline. High-level logic now depends purely on abstractions, not concrete implementations.
+
+Ex10 — Dependency Inversion Principle (DIP): Campus Transport
+Overview: A service that calculates distances, assigns drivers, and processes payments to book campus rides.
+
+The Problem: Just like Ex9, TransportBookingService was manually creating new DistanceCalculator(), new DriverAllocator(), etc., directly inside the book() method.
+
+How You Fixed It: You defined interfaces for each dependency (IDistanceCalculator, IDriverAllocator, IPaymentGateway). You refactored TransportBookingService to request these dependencies via its constructor. The Main class now handles wiring the concretes, leaving the booking service completely decoupled and easy to test with mock components.
