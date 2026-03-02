@@ -60,3 +60,28 @@ After refactor, you can update `TryIt` to show:
 - building a ticket
 - “updating” by creating a new instance
 - tags list is not mutable from outside
+
+1. The Problem: Unsafe Mutations (Changing Data)
+What was wrong: The original IncidentTicket had public setter methods (setPriority, etc.). Any part of the application could change a ticket's data at any time. This is dangerous in large apps because it causes race conditions (two things updating the ticket at once) and makes it impossible to reliably track the history of a ticket.
+
+How we fixed it: We made the class strictly immutable. We marked every single field as private final, meaning they can only be assigned once. We completely deleted all the setter methods. Once an IncidentTicket is created, it is locked forever.
+
+2. The Problem: The "List Leak"
+What was wrong: Even without setters, the original class returned its internal tags list directly. If someone called ticket.getTags().add("HACKED"), it modified the list inside the ticket, breaking our immutability rule.
+
+How we fixed it: We used defensive copying. When the constructor assigns the list, it wraps it like this: this.tags = Collections.unmodifiableList(new ArrayList<>(builder.tags));. Now, if anyone tries to add or remove a tag from the outside, Java throws an error immediately.
+
+3. The Problem: Scattered Validation
+What was wrong: The rules for what makes a valid ticket (like checking for a valid email or making sure the title isn't blank) were scattered inside the TicketService. If someone created a ticket somewhere else in the app, they could accidentally bypass those checks and create corrupt data.
+
+How we fixed it: We made the Builder's build() method the ultimate gatekeeper. We moved all the Validation.require... methods directly into the build() step. Now, it is literally impossible for the system to create an invalid IncidentTicket. If the data is bad, the Builder stops it before the object even exists.
+
+4. The Problem: Messy Object Creation
+What was wrong: The original class had tons of parameters—some required, some optional. Passing 10 different variables into a standard constructor makes it incredibly easy to put the wrong variable in the wrong spot (like putting the assigneeEmail in the reporterEmail slot).
+
+How we fixed it: We created a public static class Builder. This gave us a fluent, step-by-step way to construct the object (e.g., .id("123").title("Broken PC").build()). It makes the code highly readable and prevents parameter mix-ups.
+
+5. The Problem: How to Update an Immutable Object?
+What was wrong: Since we deleted all the setters and made the fields final, we couldn't change the priority of a ticket to "CRITICAL" when we needed to escalate it.
+
+How we fixed it: We built the toBuilder() method. Instead of modifying the existing ticket, toBuilder() creates a carbon copy of the ticket's data inside a fresh Builder. We apply our updates (like .priority("CRITICAL")) to that new Builder, and then stamp out a brand new, updated IncidentTicket. The original remains untouched and safe.
