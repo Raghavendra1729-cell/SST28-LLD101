@@ -33,3 +33,9 @@ Build & Run
 Repo intent
 This is a **refactoring assignment**: the starter code is intentionally wasteful.
 Students should refactor to Flyweight without changing the external behavior.
+
+
+
+The original structure had every MapMarker creating and owning its own MarkerStyle object, which meant thousands of duplicate style objects were stored in memory. This led to a massive memory blow-up when rendering a large number of markers with identical visual properties. We fixed this using the Flyweight pattern by extracting the style into a separate immutable class and using a MarkerStyleFactory to cache and share a single instance for each unique combination of style fields.
+
+In this refactored design, MarkerStyle contains the intrinsic state (shared data like shape, color, size, and filled status), while MapMarker holds the extrinsic state (unique data like latitude, longitude, and label). We implemented this by modifying MapMarker to store a reference to a shared MarkerStyle object rather than creating its own. The MapDataSource now obtains these shared styles from the factory, ensuring that even with 30,000 markers, only a few dozen unique style objects exist in memory.
