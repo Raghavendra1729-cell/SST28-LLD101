@@ -40,3 +40,25 @@ Build & Run
 Repo intent
 This is a refactoring assignment: the starter code works, but it does not use Proxy properly.
 Students should refactor the design so access control + lazy loading happen via a proxy.
+
+
+1. The Problem (Old Code)
+No Security: Anyone could open any confidential report.
+
+Too Slow: The 120ms "disk load" happened every single time a report was opened.
+
+No Memory: Opening the same report 3 times caused 3 slow disk loads.
+
+2. The Fix (Proxy Pattern)
+The "Bouncer" (ReportProxy): Sits between the user and the heavy report.
+
+Access Control: Checks roles and blocks unauthorized users instantly.
+
+Lazy Load + Cache: Waits to create the heavy RealReport until it's actually needed, then saves it in a variable to reuse instantly next time.
+
+3. The Code Changes
+Moved the heavy loading logic into a new RealReport class.
+
+Built ReportProxy to handle the security and caching checks.
+
+Updated App.java to create proxies instead of direct files, then deleted the old ReportFile.
