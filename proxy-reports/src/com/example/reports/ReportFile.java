@@ -9,7 +9,7 @@ package com.example.reports;
  * TODO (student):
  * - Convert this into the RealSubject behind a Proxy, or replace with RealReport.
  */
-public class ReportFile {
+public class ReportFile implements Report{
 
     private final String reportId;
     private final String title;
