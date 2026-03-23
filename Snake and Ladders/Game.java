@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Game {
@@ -5,21 +7,23 @@ public class Game {
     private final List<Player> players;
     private final Dice dice;
     private final GameVersion version;
+    private final List<Player> winners;
     private int currentPlayerIndex;
-    private Player winner;
 
     public Game(Board board, List<Player> players, Dice dice, GameVersion version) {
         this.board = board;
         this.players = players;
         this.dice = dice;
         this.version = version;
+        this.winners = new ArrayList<>();
     }
 
     public void makeTurn() {
-        if (winner != null) {
+        if (isFinished()) {
             return;
         }
 
+        currentPlayerIndex = getNextActivePlayerIndex(currentPlayerIndex);
         Player player = players.get(currentPlayerIndex);
         int consecutiveSixes = 0;
         boolean extraTurn = true;
@@ -48,8 +52,11 @@ public class Game {
             System.out.println("position " + player.getPosition());
 
             if (player.getPosition() == board.getFinalSquare()) {
-                winner = player;
+                winners.add(player);
                 System.out.println(player.getName() + " wins");
+                if (!isFinished()) {
+                    currentPlayerIndex = getNextActivePlayerIndex((currentPlayerIndex + 1) % players.size());
+                }
                 return;
             }
 
@@ -66,18 +73,32 @@ public class Game {
             }
         }
 
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+        currentPlayerIndex = getNextActivePlayerIndex((currentPlayerIndex + 1) % players.size());
     }
 
     public Player getWinner() {
-        return winner;
+        return winners.isEmpty() ? null : winners.get(0);
+    }
+
+    public List<Player> getWinners() {
+        return Collections.unmodifiableList(winners);
     }
 
     public boolean isFinished() {
-        return winner != null;
+        return players.size() - winners.size() < 2;
     }
 
     public Board getBoard() {
         return board;
+    }
+
+    private int getNextActivePlayerIndex(int startIndex) {
+        for (int i = 0; i < players.size(); i++) {
+            int candidateIndex = (startIndex + i) % players.size();
+            if (!winners.contains(players.get(candidateIndex))) {
+                return candidateIndex;
+            }
+        }
+        return startIndex;
     }
 }
